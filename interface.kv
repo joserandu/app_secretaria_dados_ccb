@@ -1,0 +1,45 @@
+<CustomButton@Button>:
+    font_size: 18
+    size_hint: (None, None)
+    size: (400, 50)
+    background_normal: ''
+    background_color: 1, 1, 1, 1
+    color: 0.15, 0.46, 0.99, 1
+    bold: True
+    border: (8, 8, 8, 8)
+    on_press: self.background_color = 0.15, 0.46, 0.99, 1
+    on_release:
+        self.background_color = 1, 1, 1, 1
+        app.disparar_main()
+
+FloatLayout:
+    canvas.before:
+        Color:
+            rgba: 0.41, 0.07, 0.79, 1  # Cor inicial do gradiente (roxa)
+        Rectangle:
+            pos: self.pos
+            size: self.size
+        Color:
+            rgba: 0.33, 0.12, 0.84, 0.8  # Segunda cor do gradiente
+        Rectangle:
+            pos: self.pos
+            size: self.size
+        Color:
+            rgba: 0.25, 0.17, 0.89, 0.6  # Terceira cor do gradiente
+        Rectangle:
+            pos: self.pos
+            size: self.size
+        Color:
+            rgba: 0.19, 0.21, 0.93, 0.4  # Quarta cor do gradiente
+        Rectangle:
+            pos: self.pos
+            size: self.size
+        Color:
+            rgba: 0.15, 0.46, 0.99, 0.2  # Cor final do gradiente (azul)
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    CustomButton:
+        text: "Clique aqui para enviar as mensagens"
+        pos_hint: {"center_x": 0.5, "center_y": 0.5}
