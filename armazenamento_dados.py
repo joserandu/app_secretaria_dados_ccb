@@ -9,10 +9,16 @@ from googleapiclient.errors import HttpError
 import pandas as pd
 from datetime import datetime
 import ids
+import requests
+from io import BytesIO
+
+url = f"https://onedrive.live.com/download?resid={ids.resid}&authkey={ids.authkey}"
+
+response = requests.get(url)
+response.raise_for_status()  # Garante que a requisição foi bem-sucedida
 
 # Carregar aba "Chamada2024"
-url = f"https://docs.google.com/spreadsheets/d/{ids.sheet_id}/export?format=csv&gid={ids.gid}"
-df = pd.read_csv(url)
+df = pd.read_excel(BytesIO(response.content), engine="openpyxl", sheet_name="Chamada2025")
 
 url_escrita = f"https://docs.google.com/spreadsheets/d/{ids.sheet_id_escrita}/edit?gid=0#gid=0"
 
@@ -20,13 +26,14 @@ url_escrita = f"https://docs.google.com/spreadsheets/d/{ids.sheet_id_escrita}/ed
 def contar_alunos():
     """Conta o número de alunos na planilha na coluna C a partir da linha 8.
            - Na primeira célula vazia, o sistema não conta mais os alunos que venham depois."""
-    i = 7
-    n = 0
-    for nome in df.iloc[i:, 2]:
-        if pd.notna(nome):
-            i += 1
-            n += 1
-    return n
+    contagem = 0
+
+    for nome in df.iloc[6:, 2]:  # Começa na linha 8 (índice 7) \\ troquei pra 6 pq são 60 nomes até agora
+        if pd.isna(nome):  # Para ao encontrar a primeira célula vazia
+            break
+        contagem += 1
+
+    return contagem
 
 
 def conta_dias_aulas(procurado):
@@ -50,7 +57,7 @@ def main():
     """Shows basic usage of the Sheets API.
     Prints values from a sample spreadsheet.
     """
-
+    print(contar_alunos())
     # Parte de configurações da API do sheets
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
@@ -81,8 +88,14 @@ def main():
 
         n_alunos = contar_alunos()
 
+        """
+        print(f"Tamanho do df: {df.shape}")  # (n_linhas, n_colunas)
+        print(f"Valores esperados para i: {list(range(6, n_alunos + 3))}")
+        print(f"Valores esperados para j: {list(range(6 + n_aulas - 2, 6 + n_aulas + 1))}")
+        """
+
         # Lógica para leitura e inscrição das planilhas
-        for p in range(-2, 1):
+        for p in range(-3, 0):
 
             presencas = []
             dias_da_semana = []
@@ -90,30 +103,67 @@ def main():
             periodos = []
             nomes = []
 
-            for i in range(6, n_alunos+3):
+            for i in range(6, n_alunos+6):  # 6 ao n_a + 3
 
-                j = 6 + n_aulas + p
+                j = 7 + n_aulas + p
 
                 presenca = df.iloc[i, j]
                 nome = df.iloc[i, 2]
                 data_periodo = df.iloc[2, j]
 
+                # print(f"Tipo de data_periodo: {type(data_periodo)} | Valor: {data_periodo}")  # Depuração
+
+                # Se já for datetime, formatamos corretamente antes de transformar em string
+                if isinstance(data_periodo, datetime):
+                    data_periodo = data_periodo.strftime("%d/%m/%Y")  # Agora está no padrão brasileiro
+
+                try:
+                    data_periodo = str(data_periodo)
+                    if "-" in data_periodo:
+                        data_periodo = data_periodo.replace("-", "/")
+                except Exception as e:
+                    print(f"Deu erro aqui: {e}")
+
+                if not isinstance(data_periodo, str):
+                    raise ValueError("A data informada não é uma string válida.")
+
                 try:
                     # Pegando só a parte da data
-                    data_str = data_periodo.split(" ")[0]  # "01/02/2025"
-                    data = datetime.strptime(data_str, "%d/%m/%Y")
+                    # Se data_periodo já for um objeto datetime, apenas formatamos
+                    if isinstance(data_periodo, datetime):
+                        data = data_periodo  # Já é um datetime válido
+                    else:
+                        # Pegando só a parte da data caso venha com um período junto
+                        if " " in data_periodo:
+                            data_str = data_periodo.split(" ")[0]  # "01/02/2025"
+                        else:
+                            data_str = data_periodo
+
+                        # Garantir que dia e mês tenham dois dígitos
+                        partes_data = data_str.split("/")
+
+                        if len(partes_data) == 3:
+                            dia, mes, ano = partes_data
+                            data_str_formatada = f"{int(dia):02d}/{int(mes):02d}/{ano}"
+                        else:
+                            raise ValueError(f"Formato de data inválido: {data_str}")
+
+                        # Converter para datetime
+                        data = datetime.strptime(data_str_formatada, "%d/%m/%Y")
+
+                    # Agora já temos `data` corretamente, podemos pegar o dia da semana
                     dia_da_semana = data.strftime("%A")
 
                     # Pegando o período (removendo parênteses)
-                    if "(" in data_periodo:
-                        periodo = data_periodo.split("(")[-1].strip(")")
+                    if isinstance(data_periodo, str) and "(" in data_periodo:
+                        periodo = data_periodo.split("(")[-1].strip(") ")
                     else:
                         periodo = "manhã"
 
-                    print(f"{i} | {presenca} | {dia_da_semana} | {data_str} | {periodo} | {nome} ")
+                    print(f"{i} | {presenca} | {dia_da_semana} | {data.strftime('%d/%m/%Y')} | {periodo} | {nome}")
 
-                except:
-                    print("Erro: Verifique se a data está no formato: dd/mm/aaaa (periodo) ou somente dd/mm/aaaa")
+                except Exception as e:
+                    print(f"Erro {e}: Verifique se a data está no formato: dd/mm/aaaa (periodo) ou somente dd/mm/aaaa")
 
                     break
 
@@ -123,11 +173,13 @@ def main():
                 periodos.append(periodo)
                 nomes.append(nome)
 
+            # print(list(enumerate(nomes)))
+
             valores_add = [
 
             ]
 
-            for i in range(0, n_alunos-3):  # -3 porque está na terceira linha da planilha
+            for i in range(0, len(presencas)):  # -3 porque está na terceira linha da planilha
                 valores_add.append([
                     "" if isinstance(presencas[i], float) and np.isnan(presencas[i]) else presencas[i],
                     "" if isinstance(dias_da_semana[i], float) and np.isnan(dias_da_semana[i]) else dias_da_semana[i],
@@ -150,9 +202,9 @@ def main():
             result = (
                 sheet.values()
                 .update(spreadsheetId=ids.SAMPLE_SPREADSHEET_ID,
-                     range=f"A{primeira_linha_vazia}",
-                     valueInputOption="USER_ENTERED",
-                     body=body)
+                        range=f"A{primeira_linha_vazia}",
+                        valueInputOption="USER_ENTERED",
+                        body=body)
                 .execute()
             )
 
