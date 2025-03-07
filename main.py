@@ -8,15 +8,27 @@ import urllib
 import urllib.parse
 from selenium.webdriver.common.by import By
 import ids
+import requests
+from io import BytesIO
 
-# Carregar aba "Chamada2024"
+url = f"https://onedrive.live.com/download?resid={ids.resid}&authkey={ids.authkey}"
 
-url = f"https://docs.google.com/spreadsheets/d/{ids.sheet_id}/export?format=csv&gid={ids.gid}"
-df = pd.read_csv(url)
+response = requests.get(url)
+response.raise_for_status()  # Garante que a requisição foi bem-sucedida
 
-# Carregar aba "Cadastro"
-url2 = f"https://docs.google.com/spreadsheets/d/{ids.sheet_id}/export?format=csv&gid={ids.gid2}"
-df2 = pd.read_csv(url2)
+# Carregar os dados no Pandas
+df = pd.read_excel(BytesIO(response.content), engine="openpyxl", sheet_name="Chamada2025")
+
+response = requests.get(url)
+response.raise_for_status()  # Garante que a requisição foi bem-sucedida
+
+df2 = pd.read_excel(BytesIO(response.content), engine="openpyxl", sheet_name="Cadastro")
+
+url_escrita = f"https://docs.google.com/spreadsheets/d/{ids.sheet_id_escrita}/edit?gid=0#gid=0"
+
+with BytesIO(response.content) as file:
+    xls = pd.ExcelFile(file, engine="openpyxl")
+    print("Abas disponíveis:", xls.sheet_names)
 
 
 class Aluno:
@@ -141,7 +153,7 @@ class Aluno:
                 # Define o número de telefone e a mensagem
                 telefone = aluno['telefone']
 
-                nome = aluno['nome']
+                nome = aluno['nome'].split(" ")[0]
                 mensagem = f"""
 Sentimos sua falta!
 
@@ -230,3 +242,15 @@ class AplicativoSecretaria(App):
 
 
 AplicativoSecretaria().run()
+
+"""
+# Código para chamada no google
+
+# Carregar aba "Chamada2024"
+url = f"https://docs.google.com/spreadsheets/d/{ids.sheet_id}/export?format=csv&gid={ids.gid}"
+df = pd.read_csv(url)
+
+# Carregar aba "Cadastro"
+url2 = f"https://docs.google.com/spreadsheets/d/{ids.sheet_id}/export?format=csv&gid={ids.gid2}"
+df2 = pd.read_csv(url2)
+"""
