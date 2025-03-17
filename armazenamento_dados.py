@@ -12,7 +12,7 @@ import ids
 import requests
 from io import BytesIO
 
-url = f"https://onedrive.live.com/download?resid={ids.resid}&authkey={ids.authkey}"
+url = f"https://onedrive.live.com/download?id={ids.id}&resid={ids.resid}&authkey={ids.authkey}"
 
 response = requests.get(url)
 response.raise_for_status()  # Garante que a requisição foi bem-sucedida
@@ -59,6 +59,7 @@ def main():
     """
     print(contar_alunos())
     # Parte de configurações da API do sheets
+
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
