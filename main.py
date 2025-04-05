@@ -1,5 +1,5 @@
-# from kivy.app import App
-# from kivy.lang import Builder  # GUI
+from kivy.app import App
+from kivy.lang import Builder  # GUI
 import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -14,8 +14,8 @@ from io import BytesIO
 url = f"https://onedrive.live.com/download?id={ids.id}&resid={ids.resid}&authkey={ids.authkey}"
 
 response = requests.get(url)
-print(response.status_code)  # Verifica o status HTTP
-print(response.headers['Content-Type'])  # Verifica o tipo de conteúdo da resposta
+# print(response.status_code)  # Verifica o status HTTP
+# print(response.headers['Content-Type'])  # Verifica o tipo de conteúdo da resposta
 response.raise_for_status()  # Garante que a requisição foi bem-sucedida
 
 # Carregar os dados no Pandas
@@ -30,7 +30,7 @@ url_escrita = f"https://docs.google.com/spreadsheets/d/{ids.sheet_id_escrita}/ed
 
 with BytesIO(response.content) as file:
     xls = pd.ExcelFile(file, engine="openpyxl")
-    print("Abas disponíveis:", xls.sheet_names)
+    # print("Abas disponíveis:", xls.sheet_names)
 
 
 class Aluno:
@@ -81,8 +81,11 @@ class Aluno:
                         if not encontrou_presenca:
                             faltas += 1
 
+                desistencia = df.iloc[i, 6]
+
                 # Adiciona o resultado para o aluno
-                lista_alunos_faltas.append({'nome': nome, 'n_faltas': faltas, 'telefone': ''})  # colocar o telefone
+                lista_alunos_faltas.append({'nome': nome, 'n_faltas': faltas, 'telefone': '', 'desistencia': desistencia})
+                # É colocado o telefone em outra função.
 
         return lista_alunos_faltas
 
@@ -97,7 +100,10 @@ class Aluno:
             if 3 < aluno['n_faltas'] < 9:
                 nome = aluno['nome']
                 faltas = aluno['n_faltas']
-                lista_faltantes.append({'nome': nome, 'n_faltas': faltas})  # colocar o telefone
+                desistencia = aluno['desistencia']
+
+                if pd.isna(aluno['desistencia']):
+                    lista_faltantes.append({'nome': nome, 'n_faltas': faltas, 'desistencia': desistencia})
 
         return lista_faltantes
 
@@ -207,7 +213,8 @@ Cursinho Comunitário Bonsucesso.
                 time.sleep(15)
 
             except Exception as e:
-                print(f"Erro ao enviar mensagem para o telefone {telefone}: {e}")
+                # print(f"Erro ao enviar mensagem para o telefone {telefone}: {e}")
+                pass
 
         # Fecha o navegador
         navegador.quit()
@@ -223,17 +230,15 @@ def main():
     # n_alunos = Aluno.contar_alunos()
 
     lista_alunos = Aluno.contar_faltas_seguidas(n_aulas)
-
     # alunos_faltas = Aluno.adicionar_telefone(lista_alunos)
 
     alunos_faltantes = Aluno.listar_faltantes(lista_alunos)
     alunos_faltantes = Aluno.adicionar_telefone(alunos_faltantes)
 
-    print(alunos_faltantes)
+    # print(alunos_faltantes)
     Aluno.enviar_mensagem(alunos_faltantes)
 
-main()
-"""
+
 GUI = Builder.load_file('interface.kv')
 
 
@@ -244,8 +249,8 @@ class AplicativoSecretaria(App):
     def disparar_main(self):
         main()
 
-"""
-# AplicativoSecretaria().run()
+
+AplicativoSecretaria().run()
 
 """
 # Código para chamada no google

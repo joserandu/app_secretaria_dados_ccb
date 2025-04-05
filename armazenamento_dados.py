@@ -65,6 +65,14 @@ def main():
     # created automatically when the authorization flow completes for the first
     # time.
 
+
+    # Código para forçar a abertura do token.json
+    # flow = InstalledAppFlow.from_client_secrets_file("credentials.json", SCOPES)
+    # creds = flow.run_local_server(port=0)
+    # with open("token.json", "w") as token:
+    #     token.write(creds.to_json())
+
+
     if os.path.exists("token.json"):
         creds = Credentials.from_authorized_user_file("token.json", SCOPES)
 

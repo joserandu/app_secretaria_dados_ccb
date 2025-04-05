@@ -3,3 +3,4 @@ token.json
 ids.py
 venv/
 quickstart.py
+dist/
