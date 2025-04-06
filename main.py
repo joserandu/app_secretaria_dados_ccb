@@ -11,7 +11,7 @@ import ids
 import requests
 from io import BytesIO
 
-url = f"https://onedrive.live.com/download?id={ids.id}&resid={ids.resid}&authkey={ids.authkey}"
+url = f"https://onedrive.live.com/download?resid={ids.resid}&authkey={ids.authkey}"
 
 response = requests.get(url)
 # print(response.status_code)  # Verifica o status HTTP
@@ -97,7 +97,7 @@ class Aluno:
         lista_faltantes = []
 
         for aluno in alunos_faltas:
-            if 3 < aluno['n_faltas'] < 9:
+            if aluno['n_faltas'] > 3:
                 nome = aluno['nome']
                 faltas = aluno['n_faltas']
                 desistencia = aluno['desistencia']
@@ -169,7 +169,7 @@ Bom dia/Boa tarde, {nome},
 
 Esperamos que você esteja bem.
 
-Notamos que sua frequência no cursinho tem sido baixa e gostaríamos de saber se há algo com o qual  possamos ajudar. Pois, a partir de 6 faltas não justificadas, que são equivalentes a *dois finais de semana*, o aluno(a) será *desligado do projeto*. Entendemos que imprevistos acontecem e estamos aqui para oferecer suporte, seja ele acadêmico ou até mesmo pessoal.
+Notamos que sua frequência no cursinho tem sido baixa e gostaríamos de saber se há algo com o qual  possamos ajudar. Entendemos que imprevistos acontecem e estamos aqui para oferecer suporte, seja ele acadêmico ou até mesmo pessoal.
 
 Sua presença é muito importante para nós, pois acreditamos em você e na sua capacidade de conseguir alcançar seus sonhos e objetivos. 
 
@@ -180,7 +180,7 @@ Aguardamos o seu retorno e desejamos que você possa retomar suas atividades con
 Um abraço,
 
 Cursinho Comunitário Bonsucesso.
-"""
+                """
 
                 # Codifica a mensagem para URL encoding
                 texto = urllib.parse.quote(mensagem)
