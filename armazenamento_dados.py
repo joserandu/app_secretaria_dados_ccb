@@ -1,3 +1,6 @@
+# from kivy.app import App
+# from kivy.lang import Builder  # GUI
+
 import os.path
 import numpy as np
 from google.auth.transport.requests import Request
@@ -64,16 +67,14 @@ def main():
     # created automatically when the authorization flow completes for the first
     # time.
 
-
     # Código para forçar a abertura do token.json
     # flow = InstalledAppFlow.from_client_secrets_file("credentials.json", SCOPES)
     # creds = flow.run_local_server(port=0)
     # with open("token.json", "w") as token:
     #     token.write(creds.to_json())
 
-
     if os.path.exists("token.json"):
-        creds = Credentials.from_authorized_user_file("token.json", SCOPES)
+       creds = Credentials.from_authorized_user_file("token.json", SCOPES)
 
     # If there are no (valid) credentials available, let the user log in.
     if not creds or not creds.valid:
@@ -102,8 +103,17 @@ def main():
         print(f"Valores esperados para j: {list(range(6 + n_aulas - 2, 6 + n_aulas + 1))}")
         """
 
+        periodos = input("Digite o número de períodos que você deseja atualizar: ")
+
+        while True:
+            try:
+                periodos = int(periodos)
+                break
+            except:
+                periodos = input("Digite um número válido!")
+
         # Lógica para leitura e inscrição das planilhas
-        for p in range(-3, 0):
+        for p in range(-periodos, 0):
 
             presencas = []
             dias_da_semana = []
@@ -219,6 +229,23 @@ def main():
     except HttpError as err:
         print(err)
 
+"""
+GUI = Builder.load_file('interface.kv')
 
-if __name__ == "__main__":
-    main()
+
+class AplicativoSecretaria(App):
+    def build(self):
+        return GUI
+
+    def disparar_main(self):
+        main()
+
+    # Colocar o link de autenticação
+
+AplicativoSecretaria().run()
+"""
+
+# if __name__ == "__main__":
+#   main()
+
+main()
